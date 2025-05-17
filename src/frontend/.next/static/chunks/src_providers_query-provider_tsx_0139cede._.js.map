@@ -1,0 +1,6 @@
+{
+  "version": 3,
+  "sources": [],
+  "sections": [
+    {"offset": {"line": 7, "column": 0}, "map": {"version":3,"sources":["file:///E:/jtl-taskmaster-saas/src/frontend/src/providers/query-provider.tsx"],"sourcesContent":["// src/providers/query-provider.tsx\r\n'use client'\r\n\r\nimport { QueryClient, QueryClientProvider } from '@tanstack/react-query'\r\nimport { ReactNode, useState } from 'react'\r\n\r\nexport default function QueryProvider({ children }: { children: ReactNode }) {\r\n  const [queryClient] = useState(\r\n    () =>\r\n      new QueryClient({\r\n        defaultOptions: {\r\n          queries: {\r\n            staleTime: 60 * 1000,\r\n            refetchOnWindowFocus: false,\r\n          },\r\n        },\r\n      })\r\n  )\r\n\r\n  return (\r\n    <QueryClientProvider client={queryClient}>{children}</QueryClientProvider>\r\n  )\r\n}\r\n"],"names":[],"mappings":"AAAA,mCAAmC;;;;;AAGnC;AAAA;AACA;;;AAHA;;;AAKe,SAAS,cAAc,EAAE,QAAQ,EAA2B;;IACzE,MAAM,CAAC,YAAY,GAAG,CAAA,GAAA,6JAAA,CAAA,WAAQ,AAAD;kCAC3B,IACE,IAAI,gLAAA,CAAA,cAAW,CAAC;gBACd,gBAAgB;oBACd,SAAS;wBACP,WAAW,KAAK;wBAChB,sBAAsB;oBACxB;gBACF;YACF;;IAGJ,qBACE,6LAAC,yLAAA,CAAA,sBAAmB;QAAC,QAAQ;kBAAc;;;;;;AAE/C;GAhBwB;KAAA","debugId":null}}]
+}

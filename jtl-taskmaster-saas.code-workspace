@@ -1,0 +1,19 @@
+{
+	"folders": [
+		{
+			"path": "."
+		}
+	],
+	"settings": {
+		"zencoder.enableRepoIndexing": true,
+		"zencoder.mcpServers": {
+			"Context7": {
+				"command": "npx",
+				"args": [
+					"-y",
+					"@upstash/context7-mcp@latest"
+				]
+			}
+		}
+	}
+}

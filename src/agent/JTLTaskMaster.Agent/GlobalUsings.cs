@@ -1,0 +1,11 @@
+global using System;
+global using System.Collections.Concurrent;
+global using System.Threading;
+global using System.Threading.Tasks;
+global using Microsoft.AspNetCore.SignalR.Client;
+global using Microsoft.Extensions.Hosting;
+global using Microsoft.Extensions.Logging;
+global using Microsoft.Extensions.Options;
+global using JTLTaskMaster.Agent.Config;
+global using JTLTaskMaster.Agent.Tasks;
+global using JTLTaskMaster.Agent.Services;

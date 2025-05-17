@@ -1,0 +1,8 @@
+using JTLTaskMaster.Application.Common.Interfaces;
+
+namespace JTLTaskMaster.Infrastructure.Services;
+
+public class DateTimeService : IDateTime
+{
+    public DateTime Now => DateTime.UtcNow;
+}

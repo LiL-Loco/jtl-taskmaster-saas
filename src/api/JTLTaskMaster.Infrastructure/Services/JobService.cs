@@ -1,0 +1,145 @@
+using JTLTaskMaster.Application.Common.Interfaces;
+using JTLTaskMaster.Domain.Entities;
+using JTLTaskMaster.Domain.Events;
+
+namespace JTLTaskMaster.Infrastructure.Services;
+
+public class JobService : IJobService
+{
+    private readonly IApplicationDbContext _context;
+    private readonly IDateTime _dateTime;
+    private readonly JobLockManager _lockManager;
+    private readonly ILogger<JobService> _logger;
+
+    public JobService(
+        IApplicationDbContext context,
+        IDateTime dateTime,
+        JobLockManager lockManager,
+        ILogger<JobService> logger)
+    {
+        _context = context;
+        _dateTime = dateTime;
+        _lockManager = lockManager;
+        _logger = logger;
+    }
+
+    public async Task<IEnumerable<Job>> GetPendingJobsAsync(CancellationToken cancellationToken)
+    {
+        var now = _dateTime.UtcNow;
+        
+        return await _context.Jobs
+            .Include(j => j.Tasks)
+            .Where(j => j.IsEnabled &&
+                       (j.Status == JobStatus.Pending ||
+                        (j.Status == JobStatus.Failed &&
+                         j.Tasks.Any(t => t.NextRetry <= now))))
+            .OrderBy(j => j.Created)
+            .ToListAsync(cancellationToken);
+    }
+
+    public async Task MarkJobAsRunning(Guid jobId)
+    {
+        if (!await _lockManager.TryAcquireLock(jobId))
+        {
+            throw new ConcurrencyException($"Job {jobId} is already being processed");
+        }
+
+        try
+        {
+            var job = await GetJobById(jobId);
+            job.Status = JobStatus.Running;
+            job.LastRun = _dateTime.UtcNow;
+            job.AddDomainEvent(new JobStartedEvent(job));
+            await _context.SaveChangesAsync();
+        }
+        catch
+        {
+            await _lockManager.ReleaseLock(jobId);
+            throw;
+        }
+    }
+
+    public async Task MarkJobAsCompleted(Guid jobId)
+    {
+        try
+        {
+            var job = await GetJobById(jobId);
+            job.Status = JobStatus.Completed;
+            job.CompletedAt = _dateTime.UtcNow;
+            job.AddDomainEvent(new JobCompletedEvent(job));
+            await _context.SaveChangesAsync();
+        }
+        finally
+        {
+            await _lockManager.ReleaseLock(jobId);
+        }
+    }
+
+    public async Task MarkJobAsFailed(Guid jobId, string error)
+    {
+        try
+        {
+            var job = await GetJobById(jobId);
+            job.Status = JobStatus.Failed;
+            job.LastError = error;
+            job.AddDomainEvent(new JobFailedEvent(job, error));
+            await _context.SaveChangesAsync();
+        }
+        finally
+        {
+            await _lockManager.ReleaseLock(jobId);
+        }
+    }
+
+    public async Task MarkTaskForRetry(Guid taskId, int retryCount, DateTime nextRetry)
+    {
+        var task = await GetTaskById(taskId);
+        var oldStatus = task.Status;
+        
+        task.Status = TaskStatus.Pending;
+        task.RetryCount = retryCount;
+        task.NextRetry = nextRetry;
+        task.AddDomainEvent(new TaskStatusChangedEvent(task, oldStatus, task.Status));
+        
+        await _context.SaveChangesAsync();
+    }
+
+    public async Task MarkTaskAsFailed(Guid taskId, string error)
+    {
+        var task = await GetTaskById(taskId);
+        var oldStatus = task.Status;
+        
+        task.Status = TaskStatus.Failed;
+        task.LastError = error;
+        task.AddDomainEvent(new TaskStatusChangedEvent(task, oldStatus, task.Status));
+        
+        await _context.SaveChangesAsync();
+    }
+
+    private async Task<Job> GetJobById(Guid jobId)
+    {
+        var job = await _context.Jobs
+            .Include(j => j.Tasks)
+            .FirstOrDefaultAsync(j => j.Id == jobId);
+
+        if (job == null)
+        {
+            throw new NotFoundException(nameof(Job), jobId);
+        }
+
+        return job;
+    }
+
+    private async Task<JobTask> GetTaskById(Guid taskId)
+    {
+        var task = await _context.JobTasks
+            .FirstOrDefaultAsync(t => t.Id == taskId);
+
+        if (task == null)
+        {
+            throw new NotFoundException(nameof(JobTask), taskId);
+        }
+
+        return task;
+    }
+}
