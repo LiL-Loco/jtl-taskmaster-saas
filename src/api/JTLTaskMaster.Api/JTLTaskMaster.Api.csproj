@@ -22,6 +22,7 @@
   <ItemGroup>
     <ProjectReference Include="..\JTLTaskMaster.Application\JTLTaskMaster.Application.csproj" />
     <ProjectReference Include="..\JTLTaskMaster.Infrastructure\JTLTaskMaster.Infrastructure.csproj" />
+    <ProjectReference Include="..\JTLTaskMaster.Persistence\JTLTaskMaster.Persistence.csproj" />
   </ItemGroup>
 
 </Project>

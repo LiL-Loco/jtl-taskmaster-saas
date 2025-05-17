@@ -4,13 +4,16 @@ using Microsoft.IdentityModel.Tokens;
 using JTLTaskMaster.Application;
 using JTLTaskMaster.Infrastructure;
 using JTLTaskMaster.Api.Hubs;
+using JTLTaskMaster.Application.Common.Interfaces;
+using JTLTaskMaster.Persistence.Repositories;
+using JTLTaskMaster.Domain.Enums;
 
 var builder = WebApplication.CreateBuilder(args);
 
 // Add services to the container.
 builder.Services.AddApplication();
 builder.Services.AddInfrastructure(builder.Configuration);
-
+builder.Services.AddScoped<IJobRepository, JobRepository>();
 builder.Services.AddControllers();
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
@@ -53,8 +56,8 @@ builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
 // CORS
 builder.Services.AddCors(options =>
 {
-    options.AddPolicy("AllowFrontend", builder =>
-        builder.WithOrigins(builder.Configuration["Frontend:Url"]!)
+    options.AddPolicy("AllowFrontend", corsBuilder =>
+        corsBuilder.WithOrigins(builder.Configuration["Frontend:Url"]!)
             .AllowAnyMethod()
             .AllowAnyHeader()
             .AllowCredentials());

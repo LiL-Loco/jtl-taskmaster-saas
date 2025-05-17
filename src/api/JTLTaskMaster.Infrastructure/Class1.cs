@@ -13,4 +13,6 @@ using OpenTelemetry.Resources;
 using OpenTelemetry.Trace;
 using OpenTelemetry.Metrics;
 using System.Diagnostics.Metrics;
-using StackExchange.Redis;namespace JTLTaskMaster.Infrastructure;  public class Class1 {  }
+using StackExchange.Redis;
+using Microsoft.Extensions.Configuration;
+namespace JTLTaskMaster.Infrastructure; public class Class1 { }

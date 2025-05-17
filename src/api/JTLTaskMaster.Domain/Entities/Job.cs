@@ -1,2 +1,15 @@
+using JTLTaskMaster.Domain.Common;
+using JTLTaskMaster.Domain.Enums;
 
-using JTLTaskMaster.Domain.Common;   namespace JTLTaskMaster.Domain.Entities;  public class Job : BaseEntity {     public new Guid Id { get; set; }     public string Name { get; set; } = string.Empty;     public string? Description { get; set; }     public bool IsEnabled { get; set; }     public JobStatus Status { get; set; } = JobStatus.Pending;     public new DateTime Created { get; set; }     public new DateTime? LastModified { get; set; }     public Guid TenantId { get; set; }     public List<JobTask> Tasks { get; private set; } = new(); }
+namespace JTLTaskMaster.Domain.Entities;
+
+public class Job : BaseAuditableEntity
+{
+    public string Name { get; set; } = string.Empty;
+    public string? Description { get; set; }
+    public bool IsEnabled { get; set; }
+    public JobStatus Status { get; set; } = JobStatus.Pending;
+    public DateTime? LastRun { get; set; }
+    public List<JobTask> Tasks { get; set; } = new();
+    public Guid TenantId { get; set; }
+}

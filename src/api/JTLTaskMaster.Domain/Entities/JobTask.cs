@@ -1,3 +1,19 @@
+using JTLTaskMaster.Domain.Common;
 
-using JTLTaskMaster.Domain.Common;   namespace JTLTaskMaster.Domain.Entities;  public class JobTask : BaseEntity {     public new Guid Id { get; set; }     public Guid JobId { get; set; }     public Job Job { get; set; } = null!;     public string Type { get; set; } = string.Empty;     public string Parameters { get; set; } = string.Empty;     public int Order { get; set; }     public bool IsEnabled { get; set; }     public JTLTaskMaster.Domain.Enums.TaskStatus Status { get; set; } = JTLTaskMaster.Domain.Enums.TaskStatus.Pending;     public new DateTime Created { get; set; }     public new DateTime? LastModified { get; set; }     public Guid TenantId { get; set; }
- public int RetryCount { get; set; } }
+namespace JTLTaskMaster.Domain.Entities;
+
+public class JobTask : BaseEntity
+{
+    public new Guid Id { get; set; }
+    public Guid JobId { get; set; }
+    public Job Job { get; set; } = null!;
+    public string Type { get; set; } = string.Empty;
+    public string Parameters { get; set; } = string.Empty;
+    public int Order { get; set; }
+    public bool IsEnabled { get; set; }
+    public JTLTaskMaster.Domain.Enums.TaskStatus Status { get; set; } = JTLTaskMaster.Domain.Enums.TaskStatus.Pending;
+    public new DateTime Created { get; set; }
+    public new DateTime? LastModified { get; set; }
+    public Guid TenantId { get; set; }
+    public int RetryCount { get; set; }
+}

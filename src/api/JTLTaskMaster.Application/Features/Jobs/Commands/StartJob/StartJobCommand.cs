@@ -1,35 +1,7 @@
-// src/api/JTLTaskMaster.Application/Features/Jobs/Commands/StartJob/StartJobCommand.cs
-using JTLTaskMaster.Domain.Exceptions;
+
 using JTLTaskMaster.Domain.Entities;
+using JTLTaskMaster.Domain.Exceptions;
 using JTLTaskMaster.Domain.Enums;
-using MediatR;
 
-namespace JTLTaskMaster.Application.Features.Jobs.Commands.StartJob;
-
-public record StartJobCommand : IRequest<Unit>
-{
-    public Guid Id { get; init; }
-}
-
-public class StartJobCommandHandler : IRequestHandler<StartJobCommand, Unit>
-{
-    private readonly IApplicationDbContext _context;
-
-    public StartJobCommandHandler(IApplicationDbContext context)
-    {
-        _context = context;
-    }
-
-    public async Task<Unit> Handle(StartJobCommand request, CancellationToken cancellationToken)
-    {
-        var job = await _context.Jobs.FindAsync(new object[] { request.Id }, cancellationToken);
-
-        if (job == null)
-            throw new NotFoundException(nameof(Job), request.Id);
-
-        job.Status = JobStatus.Running;
-        await _context.SaveChangesAsync(cancellationToken);
-
-        return Unit.Value;
-    }
-}
+using JTLTaskMaster.Domain.Events; 
+using MediatR; // Nur MediatR using-Direktive using Microsoft.EntityFrameworkCore; using Microsoft.Extensions.Logging;  namespace JTLTaskMaster.Application.Features.Jobs.Commands.StartJob;  public record StartJobCommand : MediatR.IRequest<Unit> {     public Guid Id { get; init; } }  public class StartJobCommandHandler : MediatR.IRequestHandler<StartJobCommand, Unit> {     private readonly IApplicationDbContext _context;     private readonly ILogger<StartJobCommandHandler> _logger; // ILogger hinzugefügt      public StartJobCommandHandler(IApplicationDbContext context, ILogger<StartJobCommandHandler> logger) // ILogger injizieren     {         _context = context;         _logger = logger;     }      public async Task<Unit> Handle(StartJobCommand request, CancellationToken cancellationToken)     {         _logger.LogInformation("Starting job {JobId}", request.Id);          try         {             var job = await _context.Jobs.FindAsync(new object[] { request.Id }, cancellationToken);              job ??= await _context.Jobs.FindAsync(new object[] { request.Id }, cancellationToken)                    ?? throw new NotFoundException(nameof(Job), request.Id);               _logger.LogInformation("Job {JobId} found. Setting status to Running.", request.Id);              job.Status = JobStatus.Running;              try             {                 await _context.SaveChangesAsync(cancellationToken);                 job.AddDomainEvent(new JobStartedEvent(job));                 await _context.SaveChangesAsync(cancellationToken); // erneut speichern, um das Event zu persistieren.             }             catch (DbUpdateException ex)             {                 _logger.LogError(ex, "Error updating job status for job {JobId}", request.Id);                 throw; // Exception weiterwerfen, nachdem sie geloggt wurde             }              _logger.LogInformation("Job {JobId} status updated to Running.", request.Id);              return Unit.Value;         }         catch (Exception ex)         {             _logger.LogError(ex, "Failed to start job {JobId}", request.Id);             throw; // Exception weiterwerfen, um sie im Frontend zu behandeln         }     } }
